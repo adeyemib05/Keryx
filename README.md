@@ -42,4 +42,11 @@ NEXT_PUBLIC_BASE_URL=
 This application is configured for deployment on Vercel. Ensure all environment variables are mapped in your Vercel project settings.
 
 ---
+
+> [!WARNING]
+> **Security Disclaimer**: This is a hackathon prototype designed strictly for the Arc Testnet. 
+> - **Private Keys**: The system currently handles agent buyer private keys directly in the backend memory to facilitate automated x402 signing. This is **unsafe** for production environments or Mainnet. In a production setting, this must be migrated to a secure KMS (Key Management Service) or an MPC wallet solution.
+> - **Publisher Verification**: Domain verification is mocked. In a real-world scenario, publishers must prove domain ownership (e.g., via DNS TXT records) to prevent Sybil attacks and impersonation.
+> - **Do not use with real funds.**
+
 *Hackathon Submission Note: This project incorporates components from the arc-nanopayments sample to demonstrate the x402 Gateway capabilities natively integrated into a Next.js App Router environment.*
