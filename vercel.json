@@ -1,5 +1,11 @@
 {
   "framework": "nextjs",
   "regions": ["iad1"],
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

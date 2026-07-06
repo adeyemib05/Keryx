@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ingestRSS } from '@/lib/rss'
 
+import * as dns from 'dns';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -11,6 +13,20 @@ export async function POST(request: Request) {
 
     if (!name || !email || !wallet_address || !slug) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (website_url && process.env.DEMO_MODE !== 'true') {
+      try {
+        const urlObj = new URL(website_url);
+        const domain = urlObj.hostname;
+        const txtRecords = await dns.promises.resolveTxt(domain);
+        const verified = txtRecords.some(record => record.join('') === `keryx-verification=${wallet_address}`);
+        if (!verified) {
+          return NextResponse.json({ error: `Domain verification failed. Please add a TXT record: keryx-verification=${wallet_address} to ${domain}` }, { status: 403 });
+        }
+      } catch (e) {
+        return NextResponse.json({ error: `Domain verification failed. Could not resolve TXT records for website.` }, { status: 403 });
+      }
     }
 
     if (!/^[a-z0-9-]+$/.test(slug)) {
