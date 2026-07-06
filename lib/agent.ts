@@ -192,8 +192,14 @@ export async function runKeryxAgent(
       if (weakGaps.length > 0) draftLog += `, WEAK on ${weakGaps.length} gaps`
       reasoningTrace.push(draftLog)
     } catch (err) {
+      // Step 2 failure (e.g. Groq rate limit) must NOT poison the payment flow.
+      // Use a soft fallback draft — mark all gaps WEAK — but keep isDemoMode=false
+      // so real x402 payments can still proceed in Step 3.
       console.error('STEP 2 GROQ ERROR:', err instanceof Error ? err.message : err);
-      isDemoMode = true
+      freeDraft = `Based on general knowledge: "${question}" is a complex topic involving multiple factors. This draft is based on pre-training knowledge only and would benefit from current, cited sources.`
+      gapCoverage = {}
+      knowledgeGaps.forEach(gap => { gapCoverage[gap] = 'WEAK' })
+      reasoningTrace.push(`Drafted fallback answer (Step 2 Groq error) — all gaps remain WEAK`)
     }
   }
 
