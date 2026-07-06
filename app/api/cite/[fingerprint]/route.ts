@@ -12,8 +12,15 @@ export async function GET(
 
   console.log('[cite] SELLER_ADDRESS:', process.env.SELLER_ADDRESS)
   console.log('[cite] facilitatorUrl: https://gateway-api-testnet.circle.com')
-  console.log('[cite] PAYMENT-SIGNATURE header present:', !!request.headers.get('payment-signature'))
-  console.log('[cite] PAYMENT-SIGNATURE value (first 50 chars):', request.headers.get('payment-signature')?.slice(0, 50))
+  const rawSig = request.headers.get('payment-signature')
+  console.log('[cite] PAYMENT-SIGNATURE header present:', !!rawSig)
+  console.log('[cite] PAYMENT-SIGNATURE value (first 50 chars):', rawSig?.slice(0, 50))
+  if (rawSig) {
+    try {
+      const decoded = JSON.parse(Buffer.from(rawSig, 'base64').toString('utf-8'))
+      console.log('[cite] Decoded payment payload:', JSON.stringify(decoded).slice(0, 500))
+    } catch { /* ignore */ }
+  }
 
   // 1. Look up the article by fingerprint
   const { data: article, error } = await supabaseAdmin
@@ -52,7 +59,12 @@ export async function GET(
   const middlewareRanToNext = await new Promise<boolean>((resolve) => {
     resMock.end = (data: string) => { 
       bodyData = data; 
-      hasEnded = true; 
+      hasEnded = true;
+      // Log the full reason from Circle's verification
+      try {
+        const parsed = JSON.parse(data)
+        console.log('[cite] Middleware response body:', JSON.stringify(parsed))
+      } catch { /* ignore */ }
       resolve(false); 
     };
     
