@@ -311,10 +311,9 @@ export async function runKeryxAgent(
 
           const rawDecision = await callGroq(sys, msg, 100)
           estimatedTokensUsed += 100
-          // FORCE PAY FOR DEMONSTRATION PURPOSES
           const decisionData = JSON.parse(rawDecision.replace(/```json|```/g, '').trim() || '{}')
-          decision = 'PAY' // decisionData.decision
-          reason = 'FORCED_TEST' // decisionData.reasoning || 'no reason provided'
+          decision = decisionData.decision
+          reason = decisionData.reasoning || 'no reason provided'
           reasoningTrace.push(`Read free preview of '${article.title}' — ${decision}: ${reason}`)
         } catch (err) {
           isDemoMode = true
