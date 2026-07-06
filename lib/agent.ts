@@ -218,7 +218,7 @@ export async function runKeryxAgent(
       const balances = await gateway.getBalances()
       const available = balances.gateway.available
       console.log(`[Gateway] Balance: ${balances.gateway.formattedAvailable} | Wallet: ${balances.wallet.formatted}`)
-      if (available === 0n) {
+      if (available === BigInt(0)) {
         reasoningTrace.push(`[Gateway] Balance is zero — attempting auto-deposit of 1 USDC before payments`)
         try {
           console.log('[Gateway] Attempting deposit. Wallet:', process.env.BUYER_ADDRESS)
