@@ -64,4 +64,36 @@
     -webkit-text-fill-color: transparent;
     background-image: linear-gradient(90deg, var(--color-accent-blue), var(--color-accent-purple));
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .form-input {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .form-input:focus {
+    border-color: rgba(68, 136, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(68, 136, 255, 0.1);
+  }
+  .form-input::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+  }
 }
