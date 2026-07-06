@@ -16,7 +16,8 @@ import {
 
 const navItems = [
   { label: 'Agent', href: '/', icon: MessageSquare, accent: '#4488ff' },
-  { label: 'Explorer', href: '/explorer', icon: BarChart2, accent: '#00ff88' },
+  { label: 'Dashboard', href: '/dashboard', icon: BarChart2, accent: '#ff4488' },
+  { label: 'Explorer', href: '/explorer', icon: Globe, accent: '#00ff88' },
   { label: 'Publishers', href: '/publishers', icon: Globe, accent: '#9d4edd' },
   { label: 'Register', href: '/register', icon: BookOpen, accent: '#f59e0b' },
 ];
