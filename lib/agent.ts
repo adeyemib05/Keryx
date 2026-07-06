@@ -4,6 +4,11 @@ import { GatewayClient } from '@circle-fin/x402-batching/client'
 import * as fs from 'fs'
 import * as path from 'path'
 
+// Fix for viem/x402 JSON.stringify BigInt serialization error
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
+
 // ---------------------------------------------------------------------------
 // Module-level GatewayClient singleton — initialised once, reused per request.
 // Only created when BUYER_PRIVATE_KEY is present; otherwise payments degrade
