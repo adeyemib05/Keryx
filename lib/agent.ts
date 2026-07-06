@@ -227,7 +227,7 @@ export async function runKeryxAgent(
           console.log('[Gateway] Deposit result:', JSON.stringify(depositResult))
           const refreshed = await gateway.getBalances()
           console.log('[Gateway] Balance after deposit:', refreshed.gateway.formattedAvailable)
-          if (refreshed.gateway.available > 0n) {
+          if (refreshed.gateway.available > BigInt(0)) {
             gatewayReady = true
             reasoningTrace.push(`[Gateway] Deposited 1 USDC — real x402 payments enabled (balance: ${refreshed.gateway.formattedAvailable})`)
           } else {
