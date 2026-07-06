@@ -3,7 +3,9 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
-const defaultUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+let envUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+if (envUrl === "blank" || !envUrl.startsWith("http")) envUrl = "https://keryx.vercel.app";
+const defaultUrl = envUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
