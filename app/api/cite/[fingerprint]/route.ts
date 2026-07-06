@@ -82,7 +82,7 @@ export async function GET(
   // 3. Payment verified — log to database
   const payerAddress = reqMock.payment?.payer || 'unknown'
   const txHash = reqMock.payment?.transaction || null
-  
+
   await supabaseAdmin.from('citation_payments').insert({
     article_id: article.id,
     publisher_id: article.publisher_id,
@@ -93,7 +93,7 @@ export async function GET(
 
   // 4. Update counters
   await supabaseAdmin.from('articles')
-    .update({ 
+    .update({
       citation_count: article.citation_count + 1,
       total_earned_usdc: Number(article.total_earned_usdc) + priceUsdc
     })
@@ -107,15 +107,37 @@ export async function GET(
     })
     .eq('id', article.publisher_id)
 
-  // 5. Return citable content
+  // 5. Generate cryptographic citation receipt
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://keryx-iota.vercel.app').replace(/\/$/, '')
+  const citationId = `cit_${Date.now()}_${fingerprint.slice(0, 8)}`
+  const citationReceipt = {
+    id: citationId,
+    article_title: article.title,
+    article_url: article.url,
+    publisher_address: process.env.SELLER_ADDRESS || 'unknown',
+    amount_paid_usdc: priceUsdc,
+    arc_tx_hash: txHash || 'pending',
+    cited_at: new Date().toISOString(),
+    fingerprint,
+    verify_url: `${baseUrl}/verify/${citationId}`,
+  }
+
+  // Store in citation_receipts (best-effort — don't block the response)
+  supabaseAdmin.from('citation_receipts').insert(citationReceipt).then(({ error: rErr }) => {
+    if (rErr) console.error('[cite] Failed to store citation receipt:', rErr.message)
+  })
+
+  // 6. Return citable content + receipt
   return NextResponse.json({
     title: article.title,
     url: article.url,
     publisher: publisherRecord?.name,
     publisher_slug: publisherRecord?.slug,
-    fingerprint: fingerprint,
+    fingerprint,
     price_paid_usdc: priceUsdc,
     cite_as: `${article.title} — ${article.url}`,
+    arc_tx_hash: txHash || 'pending',
+    citation_receipt: citationReceipt,
   })
 }
 

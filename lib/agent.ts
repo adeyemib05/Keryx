@@ -274,18 +274,35 @@ export async function runKeryxAgent(
       let reason = ''
       let reasonLog = ''
 
+
       if (!isDemoMode) {
+        // ----------------------------------------------------------------
+        // TRUE PAY-PER-CITATION: fetch free preview first, decide, then pay
+        // ----------------------------------------------------------------
         try {
-          const sys = `You are a budget-conscious research agent deciding whether to pay for a source. You will be given: your remaining USDC budget, the cost of this source, your current draft answer, the knowledge gaps that are still WEAK or PARTIAL, and the title + URL of the candidate source. Decide: PAY or SKIP. If the budget is less than the source cost, you must answer SKIP. If the gap this source addresses is already STRONG, answer SKIP. Otherwise weigh the marginal value against the cost. Return JSON: { "decision": "PAY|SKIP", "reasoning": "one sentence explanation" }`
-          
+          // Step 3a: Fetch free preview (no payment)
+          const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://keryx-iota.vercel.app').trim()
+          const previewUrl = `${baseUrl}/api/preview/${article.content_fingerprint}`
+          let previewText = article.title // fallback
+          try {
+            const previewResp = await fetch(previewUrl)
+            if (previewResp.ok) {
+              const previewData = await previewResp.json()
+              previewText = previewData.preview || article.title
+            }
+          } catch { /* use title as fallback */ }
+
+          // Step 3b: LLM evaluates the preview — not just the title
+          const sys = `You are a budget-conscious research agent deciding whether to pay for and cite a source. You have read a FREE PREVIEW of this article. Decide: PAY or SKIP. Only pay if the preview demonstrates this article contains specific, citable information that directly addresses one of the WEAK gaps — not just general relevance. Return JSON: { "decision": "PAY|SKIP", "reasoning": "one sentence" }`
           const shortDraft = freeDraft.slice(0, 300)
-          const msg = `Remaining Budget: $${budgetRemaining} USDC\nSource Cost: $${article.price_usdc} USDC\nCurrent Draft:\n${shortDraft}\n\nWeak/Partial Gaps:\n${JSON.stringify(weakPartialGaps)}\n\nCandidate Source:\nTitle: ${article.title}\nURL: ${article.url}`
-          
+          const msg = `Remaining Budget: $${budgetRemaining} USDC\nSource Cost: $${article.price_usdc} USDC\nCurrent Draft:\n${shortDraft}\n\nWeak/Partial Gaps:\n${JSON.stringify(weakPartialGaps)}\n\nFree Preview of '${article.title}':\n${previewText}`
+
           const rawDecision = await callGroq(sys, msg, 100)
           estimatedTokensUsed += 100
           const decisionData = JSON.parse(rawDecision.replace(/```json|```/g, '').trim() || '{}')
           decision = decisionData.decision
           reason = decisionData.reasoning || 'no reason provided'
+          reasoningTrace.push(`Read free preview of '${article.title}' — ${decision}: ${reason}`)
         } catch (err) {
           isDemoMode = true
         }
@@ -401,7 +418,14 @@ export async function runKeryxAgent(
           if (isDemoMode) {
             reasoningTrace.push(reasonLog)
           } else {
-            reasoningTrace.push(`Evaluated '${article.title}' ($${article.price_usdc}, ${Math.round((article.price_usdc / budgetUsdc) * 100)}% of budget) — PAY — ${reason}`)
+            // The preview+decision log was already pushed in Step 3a/3b above.
+            // Only log the payment confirmation here.
+            const verifyUrl = (citedContent as any)?.citation_receipt?.verify_url
+            reasoningTrace.push(
+              verifyUrl
+                ? `Payment confirmed for '${article.title}' — verify: ${verifyUrl}`
+                : `Paid $${article.price_usdc} for '${article.title}' — arc_tx_hash: ${arcTxHash}`
+            )
           }
 
           if (citedContent._isMock) {
