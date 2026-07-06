@@ -36,7 +36,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 })
     }
 
-    const origin = new URL(request.url).origin
+    const protocol = request.headers.get('x-forwarded-proto') || 'https'
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host')
+    const origin = host ? `${protocol}://${host}` : new URL(request.url).origin
+    
     const result = await runKeryxAgent(question, budget_usdc || 0.05, origin)
 
     return NextResponse.json(result, { status: 200 })
