@@ -229,16 +229,11 @@ export async function runKeryxAgent(
     try {
       const balances = await gateway.getBalances()
       const available = balances.gateway.available
-      console.log(`[Gateway] Balance: ${balances.gateway.formattedAvailable} | Wallet: ${balances.wallet.formatted}`)
       if (available === BigInt(0)) {
         reasoningTrace.push(`[Gateway] Balance is zero — attempting auto-deposit of 1 USDC before payments`)
         try {
-          console.log('[Gateway] Attempting deposit. Wallet:', process.env.BUYER_ADDRESS)
-          console.log('[Gateway] Wallet ERC-20 balance before deposit:', balances.wallet.formatted)
           const depositResult = await gateway.deposit('1')
-          console.log('[Gateway] Deposit result:', JSON.stringify(depositResult))
           const refreshed = await gateway.getBalances()
-          console.log('[Gateway] Balance after deposit:', refreshed.gateway.formattedAvailable)
           if (refreshed.gateway.available > BigInt(0)) {
             gatewayReady = true
             reasoningTrace.push(`[Gateway] Deposited 1 USDC — real x402 payments enabled (balance: ${refreshed.gateway.formattedAvailable})`)
@@ -248,7 +243,6 @@ export async function runKeryxAgent(
         } catch (depositErr) {
           const errMsg = depositErr instanceof Error ? depositErr.message : String(depositErr)
           console.error('[Gateway] Deposit FAILED:', errMsg)
-          console.error('[Gateway] Full deposit error:', depositErr)
           reasoningTrace.push(`[Gateway] Auto-deposit failed (${errMsg}) — falling back to demo_pending`)
         }
       } else {
@@ -346,16 +340,8 @@ export async function runKeryxAgent(
         // ---------------------------------------------------------------
         if (!isDemoMode && gateway && gatewayReady) {
           try {
-            console.log('[x402] BUYER_ADDRESS:', process.env.BUYER_ADDRESS);
-            console.log('[x402] Base URL:', process.env.NEXT_PUBLIC_BASE_URL);
-            console.log('[x402] Full cite URL:', citeUrl);
-            console.log('[x402] Attempting real payment for:', citeUrl);
-
             const payResult = await gateway.pay(citeUrl)
-            console.log('[x402] Payment SUCCESS:', JSON.stringify(payResult).slice(0, 200)); // slice to avoid huge logs
-            // payResult.data contains the JSON body returned by /api/cite/[fingerprint]
             citedContent = payResult.data as any
-            // Prefer arc_tx_hash from the response body, else use payment-response header info
             arcTxHash = (citedContent as any)?.arc_tx_hash
               || (citedContent as any)?.tx_hash
               || `gw_${payResult.formattedAmount}_${Date.now()}`
@@ -363,16 +349,12 @@ export async function runKeryxAgent(
               `Real x402 payment cleared for '${article.title}' — arc_tx_hash: ${arcTxHash}`
             )
           } catch (payErr) {
-            console.error('[x402] Payment FAILED — full error:', payErr);
-            console.error('[x402] Error message:', payErr instanceof Error ? payErr.message : String(payErr));
-            console.error('[x402] Error stack:', payErr instanceof Error ? payErr.stack : 'no stack');
-            
             const msg = (payErr as Error).message || String(payErr)
+            console.error('[x402] Payment FAILED:', msg)
             reasoningTrace.push(
               `Payment attempted for '${article.title}' — Gateway error: ${msg} — arc_tx_hash: settlement_failed`
             )
             arcTxHash = 'settlement_failed'
-            // Fall back to demo mock so the citation still appears
             citedContent = {
               fingerprint: article.content_fingerprint || 'fp_unknown',
               cite_as: `${article.title} — ${article.url}`,

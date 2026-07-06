@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MessageSquare,
   BarChart2,
@@ -12,31 +12,34 @@ import {
   ChevronRight,
   Zap,
   Globe,
+  X,
+  LayoutDashboard,
 } from 'lucide-react';
 
 const navItems = [
   { label: 'Agent', href: '/', icon: MessageSquare, accent: '#4488ff' },
-  { label: 'Dashboard', href: '/dashboard', icon: BarChart2, accent: '#ff4488' },
-  { label: 'Explorer', href: '/explorer', icon: Globe, accent: '#00ff88' },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, accent: '#ff4488' },
+  { label: 'Explorer', href: '/explorer', icon: BarChart2, accent: '#00ff88' },
   { label: 'Publishers', href: '/publishers', icon: Globe, accent: '#9d4edd' },
   { label: 'Register', href: '/register', icon: BookOpen, accent: '#f59e0b' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  return (
-    <aside
-      className="relative flex flex-col transition-all duration-300 ease-in-out flex-shrink-0"
-      style={{
-        width: collapsed ? '72px' : '220px',
-        background: 'rgba(8, 8, 14, 0.95)',
-        borderRight: '1px solid rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-      }}
-    >
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    onMobileClose?.();
+  }, [pathname]);
+
+  const NavContent = () => (
+    <>
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-4 py-5 overflow-hidden"
@@ -65,6 +68,16 @@ export default function Sidebar() {
             <p className="font-bold text-lg leading-none tracking-tight" style={{ fontFamily: 'var(--font-space, system-ui)', color: '#fff' }}>Keryx</p>
             <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Pay-per-citation</p>
           </div>
+        )}
+        {/* Mobile close button */}
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="ml-auto md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
+          >
+            <X size={16} />
+          </button>
         )}
       </div>
 
@@ -135,10 +148,10 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Collapse toggle */}
+      {/* Collapse toggle — desktop only */}
       <button
         onClick={() => setCollapsed(c => !c)}
-        className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center z-20 transition-all duration-200 hover:scale-110"
+        className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full hidden md:flex items-center justify-center z-20 transition-all duration-200 hover:scale-110"
         style={{ background: '#131318', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -151,6 +164,43 @@ export default function Sidebar() {
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>Powered by Circle x402</p>
         </div>
       )}
-    </aside>
+    </>
+  );
+
+  const sidebarStyle = {
+    background: 'rgba(8, 8, 14, 0.95)',
+    borderRight: '1px solid rgba(255,255,255,0.07)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+  };
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className="relative hidden md:flex flex-col transition-all duration-300 ease-in-out flex-shrink-0"
+        style={{ width: collapsed ? '72px' : '220px', ...sidebarStyle }}
+      >
+        <NavContent />
+      </aside>
+
+      {/* Mobile overlay + drawer */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 z-40 md:hidden"
+            onClick={onMobileClose}
+          />
+          {/* Drawer */}
+          <aside
+            className="fixed left-0 top-0 bottom-0 z-50 flex flex-col md:hidden relative"
+            style={{ width: '240px', ...sidebarStyle }}
+          >
+            <NavContent />
+          </aside>
+        </>
+      )}
+    </>
   );
 }

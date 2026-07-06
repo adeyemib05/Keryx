@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
-import WelcomeGuide from "@/components/WelcomeGuide";
+import AppShell from "@/components/AppShell";
 import "./globals.css";
 
 const baseUrl = (() => {
@@ -15,6 +13,28 @@ export const metadata: Metadata = {
   title: "Keryx — Pay-Per-Citation AI",
   description: "AI agents pay publishers every time they cite their work. Powered by Circle x402 on Arc Network.",
   icons: { icon: "/logo.svg" },
+  openGraph: {
+    title: "Keryx — Pay-Per-Citation AI",
+    description: "The first AI agent that pays publishers per citation using Circle x402 micropayments on the Arc testnet.",
+    url: baseUrl,
+    siteName: "Keryx",
+    images: [
+      {
+        url: "/screenshot.png",
+        width: 1200,
+        height: 630,
+        alt: "Keryx – Pay-Per-Citation AI Agent",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Keryx — Pay-Per-Citation AI",
+    description: "The first AI agent that pays publishers per citation using Circle x402 micropayments on the Arc testnet.",
+    images: ["/screenshot.png"],
+  },
 };
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -27,16 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         className="antialiased"
         style={{ background: '#050508', color: '#ffffff', fontFamily: 'var(--font-inter, Inter, system-ui)' }}
       >
-        <WelcomeGuide />
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
