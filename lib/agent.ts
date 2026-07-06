@@ -122,7 +122,8 @@ export async function findRelevantArticles(query: string, limit = 5): Promise<Ar
 
 export async function runKeryxAgent(
   question: string,
-  budgetUsdc: number = 0.05
+  budgetUsdc: number = 0.05,
+  explicitBaseUrl?: string
 ): Promise<AgentResult> {
   let budgetRemaining = budgetUsdc
   const reasoningTrace: string[] = []
@@ -287,7 +288,7 @@ export async function runKeryxAgent(
         // ----------------------------------------------------------------
         try {
           // Step 3a: Fetch free preview (no payment)
-          const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://keryx-iota.vercel.app').trim()
+          const baseUrl = (explicitBaseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://keryx-iota.vercel.app').trim().replace(/\/$/, '')
           const previewUrl = `${baseUrl}/api/preview/${article.content_fingerprint}`
           let previewText = article.title // fallback
           try {
@@ -329,7 +330,7 @@ export async function runKeryxAgent(
       }
       
       if (decision === 'PAY' && budgetRemaining >= article.price_usdc) {
-        const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').trim()
+        const baseUrl = (explicitBaseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://keryx-iota.vercel.app').trim().replace(/\/$/, '')
         const citeUrl = `${baseUrl}/api/cite/${article.content_fingerprint}`
 
         let citedContent: any = null

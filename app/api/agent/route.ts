@@ -36,7 +36,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 })
     }
 
-    const result = await runKeryxAgent(question, budget_usdc || 0.05)
+    const origin = new URL(request.url).origin
+    const result = await runKeryxAgent(question, budget_usdc || 0.05, origin)
 
     return NextResponse.json(result, { status: 200 })
   } catch (err: any) {
