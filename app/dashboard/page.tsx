@@ -230,7 +230,7 @@ function DashboardContent() {
                   <div className="flex-1 min-w-0 mr-4">
                     <p className="text-sm font-medium text-gray-200 truncate">{payment.article_title || 'Unknown Article'}</p>
                     <a 
-                      href={`https://testnet.arc.network/tx/${payment.arc_tx_hash}`} 
+                      href={`https://testnet.arcscan.app/tx/${payment.arc_tx_hash}`} 
                       target="_blank"
                       rel="noreferrer"
                       className="text-xs font-mono text-gray-500 hover:text-blue-400 truncate flex items-center gap-1 mt-1"

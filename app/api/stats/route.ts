@@ -29,14 +29,27 @@ export async function GET() {
     const total_citations = payments?.length || 0
     const total_paid_usdc = payments?.reduce((acc, p) => acc + Number(p.amount_usdc), 0) || 0
 
-    // 4. Recent payments
-    const { data: recent_payments, error: recError } = await supabaseAdmin
+    // 4. Recent payments — join articles and publishers then flatten
+    const { data: raw_payments, error: recError } = await supabaseAdmin
       .from('citation_payments')
       .select('*, articles(title, url), publishers(name, slug)')
       .order('created_at', { ascending: false })
-      .limit(5)
+      .limit(20)
 
     if (recError) throw recError
+
+    // Flatten nested joins into flat fields the Explorer expects
+    const recent_payments = (raw_payments || []).map((p: any) => ({
+      id: p.id,
+      article_title: p.articles?.title || null,
+      article_url: p.articles?.url || null,
+      publisher_name: p.publishers?.name || null,
+      publisher_slug: p.publishers?.slug || null,
+      amount_usdc: p.amount_usdc,
+      arc_tx_hash: p.arc_tx_hash,
+      payer_address: p.payer_address,
+      created_at: p.created_at,
+    }))
 
     return NextResponse.json({
       total_publishers: total_publishers || 0,

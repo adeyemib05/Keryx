@@ -185,7 +185,7 @@ export default function PublisherProfilePage({ params }: { params: Promise<{ slu
                         +${(payment.amount_usdc || 0).toFixed(4)}
                       </span>
                       <a 
-                        href={`https://testnet.arc.network/tx/${payment.arc_tx_hash}`} 
+                        href={`https://testnet.arcscan.app/tx/${payment.arc_tx_hash}`} 
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs font-mono text-gray-500 hover:text-blue-400 flex items-center gap-1 transition-colors"

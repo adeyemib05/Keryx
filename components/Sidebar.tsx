@@ -129,7 +129,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             <span className="text-xs font-semibold" style={{ color: '#00ff88' }}>Arc Testnet</span>
           </div>
           <a
-            href="https://testnet.arc.network"
+            href="https://testnet.arcscan.app"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80"

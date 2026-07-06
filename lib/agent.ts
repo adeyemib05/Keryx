@@ -180,7 +180,14 @@ export async function runKeryxAgent(
   // ==========================================
   if (!isDemoMode) {
     try {
-      const sys = `You are a research agent writing a first draft. Use only your general knowledge and the article titles provided (you do not have access to the full content yet). Write a draft answer, then for each knowledge gap provided, rate how well the draft currently addresses it: STRONG, PARTIAL, or WEAK. Return JSON: { "draft": "...", "gap_coverage": { "gap description": "STRONG|PARTIAL|WEAK" } }`
+      const sys = `You are a research agent writing a first draft answer from general knowledge only.
+RULES FOR RATING GAP COVERAGE:
+- Rate WEAK if: the gap requires recent/current/live news, specific statistics, or breaking developments that you cannot confirm from training data alone.
+- Rate WEAK if: your draft says there is "no information", "unclear", "not available", or uses hedging language.
+- Rate PARTIAL if: you have some general background but lack specifics, recent data, or citations.
+- Rate STRONG ONLY if: you can state concrete, verifiable, non-time-sensitive facts directly answering that exact gap.
+- IMPORTANT: Any gap about "recent news", "latest", "this week", "current" MUST be rated WEAK — your training data is not live.
+Return JSON: { "draft": "...", "gap_coverage": { "gap description": "STRONG|PARTIAL|WEAK" } }`
       const msg = `Question: ${question}\n\nKnowledge Gaps:\n${JSON.stringify(knowledgeGaps)}\n\nArticle Titles:\n${candidateMetadata}`
       
       const rawDraft = await callGroq(sys, msg, 400)
@@ -189,18 +196,37 @@ export async function runKeryxAgent(
       
       freeDraft = draftData.draft || 'Unable to produce draft'
       gapCoverage = draftData.gap_coverage || {}
+
+      // Post-processing override: any gap about recent/current/news/latest must be WEAK
+      // Also, if the draft itself contains hedging language, force all gaps to WEAK
+      const draftLower = freeDraft.toLowerCase()
+      const isHedging = draftLower.includes('no recent') || draftLower.includes('no information') ||
+        draftLower.includes('not available') || draftLower.includes('unclear') ||
+        draftLower.includes('i cannot') || draftLower.includes('i don\'t have')
+      const recentKeywords = ['recent', 'latest', 'current', 'news', 'today', 'week', 'this year', 'breaking']
+      const questionIsAboutRecent = recentKeywords.some(k => question.toLowerCase().includes(k))
+
+      for (const gap of Object.keys(gapCoverage)) {
+        const gapLower = gap.toLowerCase()
+        const gapIsRecent = recentKeywords.some(k => gapLower.includes(k))
+        if (gapIsRecent || isHedging || questionIsAboutRecent) {
+          gapCoverage[gap] = 'WEAK'
+        }
+      }
+      // If the draft is hedging and ALL gaps ended up STRONG (LLM hallucinated coverage), force all WEAK
+      const allStrong = Object.values(gapCoverage).every(v => v === 'STRONG')
+      if (allStrong && (isHedging || questionIsAboutRecent)) {
+        for (const gap of Object.keys(gapCoverage)) gapCoverage[gap] = 'WEAK'
+      }
       
       const weakGaps = Object.entries(gapCoverage).filter(([_, v]) => v === 'WEAK' || v === 'PARTIAL').map(([k]) => k)
       const strongGaps = Object.entries(gapCoverage).filter(([_, v]) => v === 'STRONG').map(([k]) => k)
       
       let draftLog = "Drafted free answer"
       if (strongGaps.length > 0) draftLog += ` — strong on ${strongGaps.length} gaps`
-      if (weakGaps.length > 0) draftLog += `, WEAK on ${weakGaps.length} gaps`
+      if (weakGaps.length > 0) draftLog += `, WEAK on ${weakGaps.length} gaps — will pay for sources`
       reasoningTrace.push(draftLog)
     } catch (err) {
-      // Step 2 failure (e.g. Groq rate limit) must NOT poison the payment flow.
-      // Use a soft fallback draft — mark all gaps WEAK — but keep isDemoMode=false
-      // so real x402 payments can still proceed in Step 3.
       console.error('STEP 2 GROQ ERROR:', err instanceof Error ? err.message : err);
       freeDraft = `Based on general knowledge: "${question}" is a complex topic involving multiple factors. This draft is based on pre-training knowledge only and would benefit from current, cited sources.`
       gapCoverage = {}

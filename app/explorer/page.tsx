@@ -137,7 +137,7 @@ export default function ExplorerPage() {
           </p>
         </div>
         <a
-          href="https://testnet.arc.network"
+          href="https://testnet.arcscan.app"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all hover:scale-105"
@@ -223,7 +223,7 @@ export default function ExplorerPage() {
                       <td className="px-4 py-3">
                         {onChain ? (
                           <a
-                            href={`https://testnet.arc.network/tx/${p.arc_tx_hash}`}
+                            href={`https://testnet.arcscan.app/tx/${p.arc_tx_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 font-mono text-xs hover:opacity-70 transition-opacity"

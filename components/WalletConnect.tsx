@@ -108,7 +108,7 @@ export default function WalletConnect() {
               </button>
 
               <a
-                href="https://testnet.arc.network/address/0xde31a25CE2420313D95E8fec237E6a3F9f11970e"
+                href="https://testnet.arcscan.app/address/0xde31a25CE2420313D95E8fec237E6a3F9f11970e"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm transition-all hover:bg-white/5"

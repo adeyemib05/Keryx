@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, HelpCircle, Wifi, Menu } from 'lucide-react';
 import WalletConnect from './WalletConnect';
 
@@ -12,6 +12,20 @@ interface HeaderProps {
 
 export default function Header({ title = 'Agent Playground', subtitle = 'Ask a question. Pay per citation.', onMenuToggle }: HeaderProps) {
   const [showHelp, setShowHelp] = useState(false);
+  const [balance, setBalance] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBalance = () => {
+      fetch('/api/balance')
+        .then(r => r.json())
+        .then(d => { if (d.balance !== null) setBalance(d.balance) })
+        .catch(() => {});
+    };
+    fetchBalance();
+    // Refresh balance every 30 seconds
+    const interval = setInterval(fetchBalance, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header
@@ -27,7 +41,7 @@ export default function Header({ title = 'Agent Playground', subtitle = 'Ask a q
       }}
     >
       <div className="flex items-center gap-3">
-        {/* Mobile hamburger — only visible on small screens */}
+        {/* Mobile hamburger */}
         <button
           onClick={onMenuToggle}
           className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 hover:bg-white/5 flex-shrink-0"
@@ -37,7 +51,7 @@ export default function Header({ title = 'Agent Playground', subtitle = 'Ask a q
           <Menu size={18} />
         </button>
 
-        {/* Left: Page title */}
+        {/* Page title */}
         <div>
           <h1
             className="text-base sm:text-lg font-bold leading-tight tracking-tight"
@@ -60,14 +74,19 @@ export default function Header({ title = 'Agent Playground', subtitle = 'Ask a q
           Arc Testnet
         </div>
 
-        {/* USDC indicator */}
+        {/* Live USDC gateway balance */}
         <div
           className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
           style={{ background: 'rgba(39,117,202,0.12)', border: '1px solid rgba(39,117,202,0.25)', color: '#5ba4f5' }}
+          title="Circle Gateway USDC balance (live)"
         >
           <span className="font-mono">USDC</span>
           <span className="opacity-60">·</span>
-          <span className="font-bold">0.100</span>
+          {balance === null ? (
+            <span className="w-10 h-3 rounded animate-pulse inline-block" style={{ background: 'rgba(91,164,245,0.3)' }} />
+          ) : (
+            <span className="font-bold">{parseFloat(balance).toFixed(3)}</span>
+          )}
         </div>
 
         {/* Notification bell */}

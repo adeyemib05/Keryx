@@ -48,7 +48,7 @@ const SUGGESTED = [
 function CitationCard({ cite, index }: { cite: Citation; index: number }) {
   const [copied, setCopied] = useState(false);
   const isSettled = cite.arc_tx_hash && cite.arc_tx_hash !== 'settlement_failed' && cite.arc_tx_hash !== 'demo_pending';
-  const explorerUrl = `https://testnet.arc.network/tx/${cite.arc_tx_hash}`;
+  const explorerUrl = `https://testnet.arcscan.app/tx/${cite.arc_tx_hash}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(cite.arc_tx_hash);
@@ -200,7 +200,7 @@ function AgentMessage({ entry }: { entry: ConversationEntry }) {
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold" style={{ color: '#00ff88' }}>🔗 Arc Network Transactions</p>
               <a
-                href="https://testnet.arc.network"
+                href="https://testnet.arcscan.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs hover:opacity-70 transition-opacity"
@@ -214,7 +214,7 @@ function AgentMessage({ entry }: { entry: ConversationEntry }) {
                 <div key={i} className="flex items-center justify-between text-xs">
                   <span className="truncate mr-4" style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '200px' }}>{cite.title}</span>
                   <a
-                    href={`https://testnet.arc.network/tx/${cite.arc_tx_hash}`}
+                    href={`https://testnet.arcscan.app/tx/${cite.arc_tx_hash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-xs flex items-center gap-1 flex-shrink-0 hover:opacity-70 transition-opacity"
