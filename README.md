@@ -98,7 +98,7 @@ Configured for Vercel. All env vars must be set in the Vercel dashboard. The `ve
 
 > [!WARNING]
 > **Security Disclaimer** — This is a hackathon prototype for the Arc Testnet only.
-> - **Private Keys**: The buyer agent's private key is read from environment variables in the serverless function. This is **not safe for production**. A real system must use a KMS or MPC wallet.
+> - **Private Keys**: The buyer agent's private key is read from environment variables in the serverless function. This is **not safe for production**. A real system must use a KMS or MPC wallet..
 > - **Domain Verification**: DNS TXT verification is implemented but can be bypassed via `DEMO_MODE=true`. Disable this for production.
 > - **Do not use with real funds.**
 
